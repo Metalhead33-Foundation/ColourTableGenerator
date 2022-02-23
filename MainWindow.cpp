@@ -159,9 +159,9 @@ void MainWindow::on_gradientBtn_clicked()
 				const double fy = static_cast<double>(y) / static_cast<double>(image.height());
 
 				const double wtl = (fx - topLeft.x) * (fy - topLeft.y);
-				const double wtr = (topLeft.x - fx ) * (fy - topLeft.y);
-				const double wbl = (fx - topLeft.x) * (topLeft.y - fy);
-				const double wbr = (topLeft.x - fx ) * (topLeft.y - fy);
+				const double wtr = (topRight.x - fx ) * (fy - topRight.y);
+				const double wbl = (fx - bottomLeft.x) * (bottomLeft.y - fy);
+				const double wbr = (bottomRight.x - fx ) * (bottomRight.y - fy);
 
 				QColor tmpColour;
 
