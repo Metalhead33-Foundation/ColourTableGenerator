@@ -152,16 +152,24 @@ void MainWindow::on_gradientBtn_clicked()
 		const int xmax = static_cast<int>( topRight.x * static_cast<double>(image.width()));
 		const int ymin = static_cast<int>( topLeft.y * static_cast<double>(image.height()));
 		const int ymax = static_cast<int>( bottomLeft.y * static_cast<double>(image.height()));
+
+		const double scaleY = bottomLeft.y - topLeft.y;
+		const double scaleX = bottomRight.x - bottomLeft.x;
 		for(int y = ymin; y < ymax; ++y ) {
 			QRgb* scanline = reinterpret_cast<QRgb*>(image.scanLine(y));
 			for(int x = xmin; x < xmax ; ++x) {
 				const double fx = static_cast<double>(x) / static_cast<double>(image.width());
 				const double fy = static_cast<double>(y) / static_cast<double>(image.height());
 
-				const double wtl = (fx - topLeft.x) * (fy - topLeft.y);
-				const double wtr = (topRight.x - fx ) * (fy - topRight.y);
-				const double wbl = (fx - bottomLeft.x) * (bottomLeft.y - fy);
-				const double wbr = (bottomRight.x - fx ) * (bottomRight.y - fy);
+				/*const double wtl = ((fx - topLeft.x) / scaleX) * ((fy - topLeft.y) / scaleY);
+				const double wtr = ((topRight.x - fx ) / scaleX) * ((fy - topRight.y) / scaleY);
+				const double wbl = ((fx - bottomLeft.x) / scaleX) * ((bottomLeft.y - fy) / scaleY);
+				const double wbr = ((bottomRight.x - fx ) / scaleX) * ((bottomRight.y - fy) / scaleY);*/
+
+				const double wtl = ((topLeft.x - fx) / scaleX) * ((topLeft.y - fy) / scaleY);
+				const double wtr = ((fx -topRight.x) / scaleX) * ((topRight.y - fy) / scaleY);
+				const double wbl = ((bottomLeft.x - fx) / scaleX) * ((fy - bottomLeft.y) / scaleY);
+				const double wbr = ((fx - bottomRight.x) / scaleX) * ((fy - bottomRight.y) / scaleY);
 
 				QColor tmpColour;
 
