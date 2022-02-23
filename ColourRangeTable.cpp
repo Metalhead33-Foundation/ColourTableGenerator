@@ -1,6 +1,11 @@
 #include "ColourRangeTable.hpp"
 #include <algorithm>
 
+const QVector<ColourDefinition>& ColourRangeTable::getColours() const
+{
+	return colours;
+}
+
 ColourRangeTable::ColourRangeTable(QObject *parent)
 	: QAbstractTableModel(parent)
 {

@@ -11,7 +11,7 @@ class ColourRangeTable : public QAbstractTableModel
 {
 	Q_OBJECT
 private:
-	QList<ColourDefinition> colours;
+	QVector<ColourDefinition> colours;
 public:
 	typedef std::function<void(ColourDefinition&)> ColourUser;
 	typedef std::function<void(const ColourDefinition&)> ConstColourUser;
@@ -45,6 +45,8 @@ public:
 	QJsonArray toJson(void) const;
 	void iterateAndUse(const ColourUser& colour_function);
 	void iterateAndUse(const ConstColourUser& colour_function) const;
+
+	const QVector<ColourDefinition>& getColours() const;
 
 private:
 };

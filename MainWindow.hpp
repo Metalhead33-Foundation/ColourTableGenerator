@@ -28,6 +28,8 @@ private slots:
 
 	void on_vanillaPaletteBtn_clicked();
 
+	void on_gradientBtn_clicked();
+
 private:
 	Ui::MainWindow *ui;
 	ColourRangeTable colourtable;

@@ -12,6 +12,12 @@ struct ColourDefinition {
 	void fromJson(const QJsonObject& json);
 	void toJson(QJsonObject& json) const;
 	QJsonObject toJson(void) const;
+
+	inline constexpr double x() const { return (xmin + xmax) / 2.0; }
+	inline constexpr double y() const { return (ymin + ymax) / 2.0; }
+	inline constexpr double x2(bool isLast) const { return isLast ? xmax : xmin; }
+	inline constexpr double y2(bool isLast) const { return isLast ? ymax : ymin; }
+
 };
 
 #endif // COLOURDEFINITION_HPP
