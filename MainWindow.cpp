@@ -174,9 +174,13 @@ void MainWindow::on_gradientBtn_clicked()
 				QColor tmpColour;
 
 				tmpColour.setRgbF(
-						(wtl * topLeft.colour.redF()) + (wtr * topRight.colour.redF()) + (wbl * bottomLeft.colour.redF()) + (wbr * bottomRight.colour.redF()),
+							(wbr * topLeft.colour.redF()) + (wbl * topRight.colour.redF()) + (wtr * bottomLeft.colour.redF()) + (wtl * bottomRight.colour.redF()),
+							(wbr * topLeft.colour.greenF()) + (wbl * topRight.colour.greenF()) + (wtr * bottomLeft.colour.greenF()) + (wtl * bottomRight.colour.greenF()),
+							(wbr * topLeft.colour.blueF()) + (wbl * topRight.colour.blueF()) + (wtr * bottomLeft.colour.blueF()) + (wtl * bottomRight.colour.blueF())
+						/*(wtl * topLeft.colour.redF()) + (wtr * topRight.colour.redF()) + (wbl * bottomLeft.colour.redF()) + (wbr * bottomRight.colour.redF()),
 						(wtl * topLeft.colour.greenF()) + (wtr * topRight.colour.greenF()) + (wbl * bottomLeft.colour.greenF()) + (wbr * bottomRight.colour.greenF()),
-						(wtl * topLeft.colour.blueF()) + (wtr * topRight.colour.blueF()) + (wbl * bottomLeft.colour.blueF()) + (wbr * bottomRight.colour.blueF()), 1.0
+						(wtl * topLeft.colour.blueF()) + (wtr * topRight.colour.blueF()) + (wbl * bottomLeft.colour.blueF()) + (wbr * bottomRight.colour.blueF())*/
+							, 1.0
 				);
 
 				scanline[x] = tmpColour.rgb();
