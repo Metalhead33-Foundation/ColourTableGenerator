@@ -106,132 +106,76 @@ static double distance(const ColourDefinition* a, bool alast, double x, double y
 	return std::sqrt( std::pow(a->x2(alast) - x,2.0) + std::pow(a->y2(alast) - y,2.0));
 }
 
-enum WantedCorner {
-	NONE,
-	TOP_LEFT,
-	TOP_RIGHT,
-	BOTTOM_LEFT,
-	BOTTOM_RIGHT
-};
-struct PointDifference {
-	const ColourDefinition* def;
-	double xdiff;
-	double ydiff;
+struct Point {
+	QColor colour;
+	double x,y;
 };
 
-static const ColourDefinition* getCloser(double x, double y, const ColourDefinition* a, const ColourDefinition* b) {
-	const double dst1 = distance(a,x,y);
-	const double dst2 = distance(b,x,y);
-	if(dst2 >= dst1) return a;
-	else return b;
-}
-static const ColourDefinition* getCloser(double x, double y, const ColourDefinition* a, const ColourDefinition* b, bool alast, bool blast) {
-	const double dst1 = distance(a,alast,x,y);
-	const double dst2 = distance(b,blast,x,y);
-	if(dst2 >= dst1) return a;
-	else return b;
-}
-static const PointDifference* getCloser(double x, double y, const PointDifference* a, const PointDifference* b) {
-	const double dst1 = distance(a->def,x,y);
-	const double dst2 = distance(b->def,x,y);
-	if(dst2 >= dst1) return a;
-	else return b;
-}
-static const PointDifference* getCloser(double x, double y, const PointDifference* a, const PointDifference* b, bool alast, bool blast) {
-	const double dst1 = distance(a->def,alast,x,y);
-	const double dst2 = distance(b->def,blast,x,y);
-	if(dst2 >= dst1) return a;
-	else return b;
-}
+struct Cube {
+	int topLeft, topRight, bottomLeft, bottomRight;
+};
 
-static QColor getGradientColour(double x, double y, const ColourDefinition* defs, int defl) {
-	QVector<PointDifference> diffs(defl);
-	for(int i = 0; i < defl; ++i) {
-		diffs[i].def = &defs[i];
-		diffs[i].xdiff = defs[i].x2(i == (defl-1)) - x;
-		diffs[i].ydiff = defs[i].y2(i == (defl-1)) - y;
-	}
-	QVector<PointDifference*> diffsTopLeft;
-	QVector<PointDifference*> diffsTopRight;
-	QVector<PointDifference*> diffsBottomLeft;
-	QVector<PointDifference*> diffsBottomRight;
-	diffsTopLeft.reserve(diffs.size());
-	diffsTopRight.reserve(diffs.size());
-	diffsBottomLeft.reserve(diffs.size());
-	diffsBottomRight.reserve(diffs.size());
-	for(int i = 0; i < diffs.size(); ++i) {
-		// For qualify top-left
-		if(diffs[i].ydiff <= 0.0 && diffs[i].xdiff <= 0.0) {
-			diffsTopLeft.push_back(&diffs[i]);
+int addPoint(QVector<Point>& points, double x, double y, const QColor& colour) {
+	int index = 0;
+	for(auto& it : points) {
+		if(it.x == x && it.y == y) {
+			const qreal nr = (0.5 * it.colour.redF()) + (0.5 * colour.redF());
+			const qreal ng = (0.5 * it.colour.greenF()) + (0.5 * colour.greenF());
+			const qreal nb = (0.5 * it.colour.blueF()) + (0.5 * colour.blueF());
+			it.colour.setRgbF(nr,ng,nb);
+			return index;
 		}
-		// For qualify top-right
-		else if(diffs[i].ydiff <= 0.0 && diffs[i].xdiff >= 0.0) {
-			diffsTopRight.push_back(&diffs[i]);
-		}
-		// For qualify bottom-left
-		if(diffs[i].ydiff >= 0.0 && diffs[i].xdiff <= 0.0) {
-			diffsBottomLeft.push_back(&diffs[i]);
-		}
-		// For qualify bottom-right
-		else if(diffs[i].ydiff >= 0.0 && diffs[i].xdiff >= 0.0) {
-			diffsBottomRight.push_back(&diffs[i]);
-		}
+		++index;
 	}
-	if(diffsTopLeft.isEmpty()) diffsTopLeft = diffsTopRight;
-	else if(diffsTopRight.isEmpty()) diffsTopRight = diffsTopLeft;
-	if(diffsBottomLeft.isEmpty()) diffsBottomLeft = diffsBottomRight;
-	else if(diffsBottomRight.isEmpty()) diffsBottomRight = diffsBottomLeft;
-
-	const PointDifference* closestTopLeft = diffsTopLeft[0];
-	const PointDifference* closestTopRight = diffsTopRight[0];
-	const PointDifference* closestBottomLeft = diffsBottomLeft[0];
-	const PointDifference* closestBottomRight = diffsBottomRight[0];
-	for(int i = 0; i < diffsTopLeft.size(); ++i) {
-		closestTopLeft = getCloser(x,y,closestTopLeft,diffsTopLeft[i]);
-	}
-	for(int i = 0; i < diffsTopRight.size(); ++i) {
-		closestTopRight = getCloser(x,y,closestTopRight,diffsTopRight[i]);
-	}
-	for(int i = 0; i < diffsBottomLeft.size(); ++i) {
-		closestBottomLeft = getCloser(x,y,closestBottomLeft,diffsBottomLeft[i]);
-	}
-	for(int i = 0; i < diffsBottomRight.size(); ++i) {
-		closestBottomRight = getCloser(x,y,closestBottomRight,diffsBottomRight[i]);
-	}
-
-	const double wTL = dist(closestTopLeft->def->xmin, x) * dist(closestTopLeft->def->ymin, y);
-	const double wTR = dist(closestTopRight->def->xmax, x) * dist(closestTopRight->def->ymin, y);
-	const double wBL = dist(closestBottomLeft->def->xmin, x) * dist(closestBottomLeft->def->ymax, y);
-	const double wBR = dist(closestBottomRight->def->xmax, x) * dist(closestBottomRight->def->ymax, y);
-
-	//std::cout << "Unified weight: " << wTL + wTR + wBL + wBR << std::endl;
-
-	QColor tmp;
-	tmp.setRgbF(
-				// R
-				(wTL * closestTopLeft->def->colour.redF()) + (wTR * closestTopRight->def->colour.redF())
-				+ (wBL * closestBottomLeft->def->colour.redF()) + (wBR * closestTopRight->def->colour.redF()),
-				// G
-				(wTL * closestTopLeft->def->colour.greenF()) + (wTR * closestTopRight->def->colour.greenF())
-				+ (wBL * closestBottomLeft->def->colour.greenF()) + (wBR * closestTopRight->def->colour.greenF()),
-				// B
-				(wTL * closestTopLeft->def->colour.blueF()) + (wTR * closestTopRight->def->colour.blueF())
-				+ (wBL * closestBottomLeft->def->colour.blueF()) + (wBR * closestTopRight->def->colour.blueF())
-				);
-	return tmp;
+	points.push_back( { colour, x, y } );
+	return index;
 }
 
 void MainWindow::on_gradientBtn_clicked()
 {
 	if(!colourtable.rowCount()) return;
-	for(int y = 0; y < image.height(); ++y ) {
-		QRgb* scanline = reinterpret_cast<QRgb*>(image.scanLine(y));
-		for(int x = 0; x < image.width() ; ++x) {
-			const double fx = static_cast<double>(x) / static_cast<double>(image.width());
-			const double fy = static_cast<double>(y) / static_cast<double>(image.height());
-			scanline[x] = getGradientColour(fx,fy,colourtable.getColours().data(),colourtable.getColours().size()).rgb();
+	QVector<Point> points;
+	QVector<Cube> quads;
+	colourtable.iterateAndUse( [&points,&quads](const ColourDefinition& cdef) {
+		int topLeft = addPoint(points,cdef.xmin,cdef.ymin,cdef.colour);
+		int topRight = addPoint(points,cdef.xmax,cdef.ymin,cdef.colour);
+		int bottomLeft = addPoint(points,cdef.xmin,cdef.ymax,cdef.colour);
+		int bottomRight = addPoint(points,cdef.xmax,cdef.ymax,cdef.colour);
+		quads.push_back( { topLeft, topRight, bottomLeft, bottomRight } );
+	});
+	for(const auto& it : quads) {
+		const auto& topLeft = points[it.topLeft];
+		const auto& topRight = points[it.topRight];
+		const auto& bottomLeft = points[it.bottomLeft];
+		const auto& bottomRight = points[it.bottomRight];
+		const int xmin = static_cast<int>( topLeft.x * static_cast<double>(image.width()));
+		const int xmax = static_cast<int>( topRight.x * static_cast<double>(image.width()));
+		const int ymin = static_cast<int>( topLeft.y * static_cast<double>(image.height()));
+		const int ymax = static_cast<int>( bottomLeft.y * static_cast<double>(image.height()));
+		for(int y = ymin; y < ymax; ++y ) {
+			QRgb* scanline = reinterpret_cast<QRgb*>(image.scanLine(y));
+			for(int x = xmin; x < xmax ; ++x) {
+				const double fx = static_cast<double>(x) / static_cast<double>(image.width());
+				const double fy = static_cast<double>(y) / static_cast<double>(image.height());
+
+				const double wtl = (fx - topLeft.x) * (fy - topLeft.y);
+				const double wtr = (topLeft.x - fx ) * (fy - topLeft.y);
+				const double wbl = (fx - topLeft.x) * (topLeft.y - fy);
+				const double wbr = (topLeft.x - fx ) * (topLeft.y - fy);
+
+				QColor tmpColour;
+
+				tmpColour.setRgbF(
+						(wtl * topLeft.colour.redF()) + (wtr * topRight.colour.redF()) + (wbl * bottomLeft.colour.redF()) + (wbr * bottomRight.colour.redF()),
+						(wtl * topLeft.colour.greenF()) + (wtr * topRight.colour.greenF()) + (wbl * bottomLeft.colour.greenF()) + (wbr * bottomRight.colour.greenF()),
+						(wtl * topLeft.colour.blueF()) + (wtr * topRight.colour.blueF()) + (wbl * bottomLeft.colour.blueF()) + (wbr * bottomRight.colour.blueF()), 1.0
+				);
+
+				scanline[x] = tmpColour.rgb();
+			}
 		}
 	}
+
 	ui->label->setPixmap(QPixmap::fromImage(image));
 }
 
