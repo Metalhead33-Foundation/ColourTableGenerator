@@ -109,6 +109,7 @@ static double distance(const ColourDefinition* a, bool alast, double x, double y
 struct Point {
 	QColor colour;
 	double x,y;
+	QList<QColor> colors;
 };
 
 struct Cube {
@@ -119,15 +120,12 @@ int addPoint(QVector<Point>& points, double x, double y, const QColor& colour) {
 	int index = 0;
 	for(auto& it : points) {
 		if(it.x == x && it.y == y) {
-			const qreal nr = (0.5 * it.colour.redF()) + (0.5 * colour.redF());
-			const qreal ng = (0.5 * it.colour.greenF()) + (0.5 * colour.greenF());
-			const qreal nb = (0.5 * it.colour.blueF()) + (0.5 * colour.blueF());
-			it.colour.setRgbF(nr,ng,nb);
+			it.colors.push_back(colour);
 			return index;
 		}
 		++index;
 	}
-	points.push_back( { colour, x, y } );
+	points.push_back( { QColor(), x, y, QList<QColor>() << colour } );
 	return index;
 }
 
@@ -143,6 +141,18 @@ void MainWindow::on_gradientBtn_clicked()
 		int bottomRight = addPoint(points,cdef.xmax,cdef.ymax,cdef.colour);
 		quads.push_back( { topLeft, topRight, bottomLeft, bottomRight } );
 	});
+	for(auto& it : points) {
+		qreal r=0,g=0,b=0;
+		for(const auto& zit : it.colors) {
+			r += zit.redF();
+			g += zit.greenF();
+			b += zit.blueF();
+		}
+		r /= it.colors.size();
+		g /= it.colors.size();
+		b /= it.colors.size();
+		it.colour.setRgbF(r,g,b,1.0);
+	}
 	for(const auto& it : quads) {
 		const auto& topLeft = points[it.topLeft];
 		const auto& topRight = points[it.topRight];
